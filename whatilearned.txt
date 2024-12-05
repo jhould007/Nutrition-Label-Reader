@@ -1,0 +1,2 @@
+Things I could talk about in an interview:
+1. How I started with Android Studio, couldn't get it to set up a project, switched to MIT App Inventor but got stuck trying to use a custom OCR extension with no documentation, and eventually settled on Python and Tkinter.

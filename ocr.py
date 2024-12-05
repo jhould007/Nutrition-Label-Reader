@@ -7,11 +7,22 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 
 # Function to read a nutrition label using OCR
 def read_label(file_path):
-    image = Image.open(file_path) # Load the image
-    full_text = pytesseract.image_to_string(image) # Perform OCR
+    try:
+        image = Image.open(file_path) # Load the image
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+        
+    try:
+        full_text = pytesseract.image_to_string(image) # Perform OCR
+    except Exception as e:
+        print(f"Error performing OCR on on image: {e}")
+    
     return extract_ingredients(full_text)
 
 def extract_ingredients(text):
+    # Get first 200 characters of text
+    start_of_label = text[:300]
+    
     # Define the regular expression pattern
     pattern = r"Ingredients.*?\."  # Matches 'Ingredients' followed by any characters and ends with a period
 
@@ -22,6 +33,4 @@ def extract_ingredients(text):
     if match:
         return match.group(0)  # Return the matched portion of the text
     else:
-        return "Ingredients not found."
-
-#print(read_label("Images/SkittleIngredientList.png"))
+        return start_of_label

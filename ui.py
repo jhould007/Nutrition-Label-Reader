@@ -1,11 +1,11 @@
 from tkinter import *
 from tkinter import filedialog
-from PIL import Image, ImageTk  # Import Pillow modules for image handling
+from PIL import Image, ImageTk
 import ocr
 import azure
 import os
 from openai import AzureOpenAI
-import threading  # Import threading module for multithreading
+import threading
 from dotenv import load_dotenv
 
 # Load Azure OpenAI endpoint URL and API key
@@ -38,21 +38,6 @@ top_label = Label(window, text="Click the upload button and upload an image to g
                   wraplength=500, anchor="center")
 top_label.pack(side="top", fill="both", expand=True, padx=10, pady=30)
 
-def display_image(file_path):
-    # Open the image using PIL
-    img = Image.open(file_path)
-    
-    # Resize the image to fit the window, keeping the aspect ratio
-    img = img.resize((400, 400))  # Adjust size as needed
-
-    # Convert the image to a Tkinter-compatible format
-    img_tk = ImageTk.PhotoImage(img)
-    
-    # Create a label to display the image
-    image_label = Label(window, image=img_tk)
-    image_label.image = img_tk  # Keep a reference to the image object
-    image_label.pack(pady=20)  # Add some padding around the image
-
 # Function to update the contents of a text object
 def update_text_object(object, new_content):
     object.config(state="normal")  # Enable editing
@@ -76,11 +61,11 @@ def open_file_picker():
     file_path = filedialog.askopenfilename(
         title="Select an Image",
         filetypes=(("Image Files", "*.png;*.jpg"), ("All Files", "*.*")),  # Allow only PNG and JPG files
-        initialdir="C:/Users/jdh10/Downloads/NLR_images"
+        initialdir="C:/Users/jdh10/OneDrive/Documents/App Development/Nutrition Label Reader/Nutrition-Label-Reader/Images"
     )
     if file_path:
         print(f"File selected: {file_path}")
-       # display_image(file_path)
+        
         # Start a new thread for backend processing
         threading.Thread(target=process_image, args=(file_path,), daemon=True).start()
 

@@ -1,0 +1,3 @@
+Reformat multithreaded code to be more concise and readable.
+Regular expression that detects ingredient list is too rigid, need to find a better way to detect the ingredient list.
+Add a progress bar/wheel/whatever.
