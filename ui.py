@@ -1,12 +1,22 @@
-from tkinter import *
-from tkinter import filedialog
-from PIL import Image, ImageTk
+# General imports
 import ocr
 import azure
 import os
 from openai import AzureOpenAI
-import threading
 from dotenv import load_dotenv
+from os.path import expanduser
+
+# Kivy and Tkinter imports
+from kivy.app import App
+from kivy.uix.button import Button
+from kivy.uix.textinput import TextInput
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
+from kivy.uix.label import Label
+from kivy.core.window import Window
+from kivy.uix.anchorlayout import AnchorLayout
+import tkinter as tk
+from tkinter import filedialog
 
 # Load Azure OpenAI endpoint URL and API key
 load_dotenv("azure.env")
@@ -28,84 +38,87 @@ client = AzureOpenAI(
     api_version="2024-05-01-preview",
 )
 
-# Initialize window
-window = Tk()
-window.title("Nutrition Label Reader")
-window.geometry("700x900")
-
-# Create main label
-top_label = Label(window, text="Click the upload button and upload an image to get started.", fg="black", font=("Arial", 16),
-                  wraplength=500, anchor="center")
-top_label.pack(side="top", fill="both", expand=True, padx=10, pady=30)
-
-# Function to update the contents of a text object
-def update_text_object(object, new_content):
-    object.config(state="normal")  # Enable editing
-    object.delete("1.0", "end")    # Clear existing content
-    object.insert("1.0", new_content)     # Insert new content
-    object.config(state="disabled")  # Disable editing to prevent user changes
-
-# Backend processing in a separate thread
-def process_image(file_path):
-    try:
-        ocr_results = ocr.read_label(file_path)
-        update_text_object(ocr_result_text, ocr_results)
-        openai_response = azure.get_openai_insights(file_path)
-        update_text_object(openai_response_text, openai_response)
-    except Exception as e:
-        update_text_object(ocr_result_text, f"Error: {str(e)}")
-        update_text_object(openai_response_text, f"Error: {str(e)}")
-
-# Function to open the file dialog and pick a file
-def open_file_picker():
-    file_path = filedialog.askopenfilename(
-        title="Select an Image",
-        filetypes=(("Image Files", "*.png;*.jpg"), ("All Files", "*.*")),  # Allow only PNG and JPG files
-        initialdir="C:/Users/jdh10/OneDrive/Documents/App Development/Nutrition Label Reader/Nutrition-Label-Reader/Images"
-    )
-    if file_path:
-        print(f"File selected: {file_path}")
+class MyApp(App):
+    def build(self):
+        # Set window size
+        Window.size = (700, 800)
         
-        # Start a new thread for backend processing
-        threading.Thread(target=process_image, args=(file_path,), daemon=True).start()
+        # Set app title
+        self.title = "Nutrition Label Reader"
 
-# Create upload file button
-upload_button = Button(window, text="Upload Image", fg="black", command=open_file_picker)
+        # Create a main layout to hold everything
+        main_layout = BoxLayout(orientation='vertical')
 
-# Place the button in the window
-upload_button.pack(side="bottom", pady=50)
+        # Create a label to display the selected file path
+        self.label = Label(
+            text="The selected file will appear here.",
+            size_hint=(1, None),
+            height=40,
+            text_size=(Window.width - 20, None),  # Set text_size to wrap text within the window width
+            halign='center'  # Center align the text
+        )
+        main_layout.add_widget(self.label)
+        
+        # Display OCR results
+        ocr_label = Label(text="OCR results", size_hint=(1, None), height=40)
+        main_layout.add_widget(ocr_label)
+        self.ocr_results = TextInput(text="", size_hint=(1, None), height=200, readonly=True)
+        main_layout.add_widget(self.ocr_results)
+        
+        # Add vertical padding
+        main_layout.add_widget(Widget(size_hint_y=None, height=20))
+        
+        # Display Azure OpenAI Output
+        azure_label = Label(text="Azure OpenAI Output", size_hint=(1, None), height=40)
+        main_layout.add_widget(azure_label)
+        self.azure_output = TextInput(text="", size_hint=(1, None), height=200, readonly=True)
+        main_layout.add_widget(self.azure_output)
 
-# Create label to show OCR results
-ocr_label_title = Label(window, text="OCR Result", fg="black", font=("Arial", 16), anchor="center")
-ocr_label_title.pack(side="top", fill="both", expand=True, padx=10)
-ocr_result_text = Text(
-    window,
-    bg="#caebee",
-    font=("Arial", 10),
-    wrap="word",  # Word wrapping for better readability
-    height=10,    # Approximate height in lines
-    width=65,     # Approximate width in characters
-    padx=10,      # Internal padding
-    pady=10,      # Internal padding
-)
-ocr_result_text.pack(fill="both", expand=True, padx=10, pady=3)
-ocr_result_text.config(state="disabled")
+        # Create an AnchorLayout for positioning the button at the bottom center
+        button_layout = AnchorLayout(anchor_x='center', anchor_y='bottom')
 
-# Get insights from OpenAI
-openai_response_label_title = Label(window, text="OpenAI Response", fg="black", font=("Arial", 16), anchor="center")
-openai_response_label_title.pack(side="top", fill="both", expand=True, padx=10)
-openai_response_text = Text(
-    window,
-    bg="#cef1c5",
-    font=("Arial", 10),
-    wrap="word",
-    height=10,
-    width=65,
-    padx=10,
-    pady=10,
-)
-openai_response_text.pack(fill="both", expand=True, padx=10, pady=3)
-openai_response_text.config(state="disabled")
+        # Create the button to trigger the native file picker
+        btn_open = Button(text="Select Image", size_hint=(None, None), size=(150, 40))
+        btn_open.bind(on_press=self.open_file_picker)  # Bind the button to the method
 
-# Start main activity
-window.mainloop()
+        # Add the button to the AnchorLayout
+        button_layout.add_widget(btn_open)
+
+        # Add the AnchorLayout (with button) to the main layout
+        main_layout.add_widget(button_layout)
+        
+        # Add padding between the button and the bottom of the window
+        main_layout.add_widget(Widget(size_hint_y=None, height=10))
+
+        return main_layout
+    
+    def open_file_picker(self, instance):
+        # Set up Tkinter's root window, which is required to open the file dialog
+        root = tk.Tk()
+        root.withdraw()  # Hide the Tkinter root window
+
+        # Open the file picker (native file dialog) and filter for image types
+        file_path = filedialog.askopenfilename(
+            title="Select an Image",
+            filetypes=(("PNG files", "*.png"), ("JPEG files", "*.jpg;*.jpeg"), ("All files", "*.*"))
+        )
+
+        if file_path:
+            self.label.text = f"Selected file: {file_path}"  # Show selected file path in the label
+            print(f"Selected file: {file_path}")  # You can process the file here
+            self.process_image(file_path)
+            
+        return file_path
+    
+    def process_image(self, file_path):
+        # Call the OCR function with the selected file path
+        ocr_results = ocr.read_label(file_path)
+        print(f"OCR Results: {ocr_results}")  # Print the OCR results (or update the UI with the results)
+        self.ocr_results.text = ocr_results  # Update the TextInput with the OCR results
+        
+        azure_output = azure.get_openai_insights(ocr_results)
+        print(f"Azure OpenAI Output: {azure_output}")  # Print the Azure OpenAI output (or update the UI with the results)
+        self.azure_output.text = azure_output  # Update the TextInput with the Azure OpenAI output
+        
+if __name__ == '__main__':
+    MyApp().run()

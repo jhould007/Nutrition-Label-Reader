@@ -1,0 +1,19 @@
+PROMPT WHERE THE INGREDIENTS ARE LISTED OUT AND SENT AS TEXT
+chat_prompt = [
+{
+    "role": "system",
+    "content": "You are an AI assistant that helps people find information."
+},
+{
+    "role": "user",
+    "content": "Hi, are you ready for my question?"
+},
+{
+    "role": "assistant",
+    "content": "Hello! Yes, I'm ready to help. What do you need assistance with?"
+},
+{
+    "role": "user",
+    "content": """Here is the ingredient list for a container of French fried onions: [organic onions, organic palm oil, organic buckwheat, salt]. Can you analyze these ingredients and let me know if there are any that may not be healthy when consumed regularly? Please provide a brief explanation for any concerns."""
+}
+]
