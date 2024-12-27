@@ -36,8 +36,10 @@ def read_label(file_path):
     try:
         full_text = pytesseract.image_to_string(image) # Perform OCR
         return extract_ingredients(full_text)
+        #return extract_ingredients(full_text)
     except Exception as e:
         print(f"Error performing OCR on on image: {e}")
+        return "Error performing OCR on image"
     
 
 # Function to extract the ingredient list from a nutrition label
