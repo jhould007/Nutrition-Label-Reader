@@ -10,7 +10,7 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 def read_label(file_path):
     try:
         image = Image.open(file_path) # Load the image
-        image = convert_to_grayscale(file_path)
+        image = preprocess_image(file_path)
         
          # Correct orientation based on EXIF data
         try:
@@ -36,7 +36,6 @@ def read_label(file_path):
     try:
         full_text = pytesseract.image_to_string(image) # Perform OCR
         return extract_ingredients(full_text)
-        #return extract_ingredients(full_text)
     except Exception as e:
         print(f"Error performing OCR on on image: {e}")
         return "Error performing OCR on image"
@@ -44,7 +43,7 @@ def read_label(file_path):
 
 # Function to extract the ingredient list from a nutrition label
 def extract_ingredients(text):
-    # Get first 200 characters of text
+    # Get first 300 characters of text
     start_of_label = text[:300]
     
     # Define the regular expression pattern
@@ -59,8 +58,16 @@ def extract_ingredients(text):
     else:
         return start_of_label # Return first 200 characters if match is not found
     
-# Function to convert an image to grayscale
-def convert_to_grayscale(image_path):
+# Function to preprocess the image for better OCR effectiveness
+def preprocess_image(image_path):
+    
     image = cv2.imread(image_path)  # Load image
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
-    return gray_image
+    processed_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
+    
+    # Resize the image to double the original size
+    resized_image = cv2.resize(processed_image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+    
+    # Invert the colors
+    inverted_image = cv2.bitwise_not(resized_image)
+    
+    return processed_image

@@ -1,1 +1,2 @@
-Convert UI code to Kivy so it can run on Android.
+Package the app to run on Android.
+Improve OCR accuracy.
